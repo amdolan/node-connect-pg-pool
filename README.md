@@ -1,55 +1,39 @@
-# Connect PG Simple
+# Connect PG Pool
 
-A simple, minimal PostgreSQL session store for Express/Connect
+A simple, minimal PostgreSQL session store for Express/Connect with connection pooling.
 
-[![Build Status](https://travis-ci.org/voxpelli/node-connect-pg-simple.svg?branch=master)](https://travis-ci.org/voxpelli/node-connect-pg-simple)
-[![Coverage Status](https://img.shields.io/coveralls/voxpelli/node-connect-pg-simple.svg)](https://coveralls.io/r/voxpelli/node-connect-pg-simple)
-[![Dependency Status](https://gemnasium.com/voxpelli/node-connect-pg-simple.svg)](https://gemnasium.com/voxpelli/node-connect-pg-simple)
-[![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg?style=flat)](https://github.com/Flet/semistandard)
+[![Build Status](https://travis-ci.org/nDmitry/node-connect-pg-pool.svg?branch=master)](https://travis-ci.org/nDmitry/node-connect-pg-pool)
+[![Coverage Status](https://img.shields.io/coveralls/nDmitry/node-connect-pg-pool.svg)](https://coveralls.io/r/nDmitry/node-connect-pg-pool)
+[![Dependency Status](https://gemnasium.com/nDmitry/node-connect-pg-pool.svg)](https://gemnasium.com/nDmitry/node-connect-pg-pool)
 
 ## Installation
 
 ```bash
-npm install connect-pg-simple
+npm install connect-pg-pool
 ```
 
-Once npm installed the module, you need to create the **session** table in your database. For that you can use the [table.sql] (https://github.com/voxpelli/node-connect-pg-simple/blob/master/table.sql) file provided with the module: 
+Once npm installed the module, you need to create the **session** table in your database. For that you can use the [table.sql] (https://github.com/nDmitry/node-connect-pg-pool/blob/master/table.sql) file provided with the module:
 
 ```bash
-psql mydatabase < node_modules/connect-pg-simple/table.sql
+psql mydatabase < node_modules/connect-pg-pool/table.sql
 ```
 
 Or simply play the file via a GUI, like the pgAdminIII queries tool.
 
 ## Usage
 
-Examples are based on Express 4.
-
-Simple example:
+Express 4:
 
 ```javascript
-var session = require('express-session');
+const session = require('express-session');
+const pg = require('pg');
+
+// create a pool once per process and reuse it
+const pool = new pg.Pool(/* { your DB config } */);
 
 app.use(session({
-  store: new (require('connect-pg-simple')(session))(),
-  secret: process.env.FOO_COOKIE_SECRET,
-  resave: false,
-  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
-}));
-```
-
-Advanced example showing some custom options:
-
-```javascript
-var pg = require('pg')
-  , session = require('express-session')
-  , pgSession = require('connect-pg-simple')(session);
-
-app.use(session({
-  store: new pgSession({
-    pg : pg,                                  // Use global pg-module
-    conString : process.env.FOO_DATABASE_URL, // Connect using something else than default DATABASE_URL env variable
-    tableName : 'user_sessions'               // Use another table-name than the default "session" one
+  store: new (require('connect-pg-pool')(session))({
+    pool: pool // required option
   }),
   secret: process.env.FOO_COOKIE_SECRET,
   resave: false,
@@ -60,10 +44,15 @@ app.use(session({
 Express 3 (and similar for Connect):
 
 ```javascript
-var express = require('express');
+const express = require('express');
+const pg = require('pg');
+
+const pool = new pg.Pool(/* { your DB config } */);
 
 app.use(session({
-  store: new (require('connect-pg-simple')(express.session))(),
+  store: new (require('connect-pg-simple')(express.session))({
+    pool: pool // required option
+  }),
   secret: process.env.FOO_COOKIE_SECRET,
   cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
 }));
@@ -71,9 +60,8 @@ app.use(session({
 
 ## Advanced options
 
-* **pg** - Recommended. If you want the session store to use the same database module (compatible with [pg](https://www.npmjs.org/package/pg) / [pg.js](https://www.npmjs.org/package/pg.js)) as the rest of your app, then send it in here. Useful as eg. the connection pool then can be shared between the module and the rest of the application. Also useful if you want this module to use the native bindings of [pg](https://www.npmjs.org/package/pg) as this module itself only comes with [pg.js](https://www.npmjs.org/package/pg.js).
+* **pool** - Required. The session store will use the same connection pool as the rest of your app.
 * **ttl** - the time to live for the session in the database – specified in seconds. Defaults to the cookie maxAge if the cookie has a maxAge defined and otherwise defaults to one day.
-* **conString** - if you don't have your PostgreSQL connection string in the `DATABASE_URL` environment variable (as you do by default on eg. Heroku) – then you need to specify the connection [string or object](https://github.com/brianc/node-postgres/wiki/pg#connectstring-connectionstring-function-callback) here so that this module that create new connections. Needen even if you supply your own database module.
 * **schemaName** - if your session table is in another Postgres schema than the default (it normally isn't), then you can specify that here.
 * **tableName** - if your session table is named something else than `session`, then you can specify that here.
 * **pruneSessionInterval** - sets the delay in seconds at which expired sessions are pruned from the database. Default is `60` seconds. If set to `false` no automatic pruning will happen. Automatic pruning weill happen `pruneSessionInterval` seconds after the last pruning – manual or automatic.
