@@ -17,10 +17,8 @@ module.exports = function (session) {
     this.schemaName = options.schemaName || null;
     this.tableName = options.tableName || 'session';
 
-    this.conString = options.conString || process.env.DATABASE_URL;
     this.ttl = options.ttl;
-    this.pg = options.pg || require('pg');
-    this.ownsPg = !options.pg;
+    this.pool = options.pool;
 
     this.errorLog = options.errorLog || console.error.bind(console);
 
@@ -54,10 +52,6 @@ module.exports = function (session) {
     if (this.pruneTimer) {
       clearTimeout(this.pruneTimer);
       this.pruneTimer = undefined;
-    }
-
-    if (this.ownsPg) {
-      this.pg.end();
     }
   };
 
@@ -135,13 +129,13 @@ module.exports = function (session) {
       fn = params;
       params = [];
     }
-    this.pg.connect(this.conString, function (err, client, done) {
+    this.pool.connect(function (err, client, done) {
       if (err) {
-        done(client);
+        done(err);
         if (fn) { fn(err); }
       } else {
         client.query(query, params || [], function (err, result) {
-          done(err || false);
+          done();
           if (fn) { fn(err, result && result.rows[0] ? result.rows[0] : false); }
         });
       }

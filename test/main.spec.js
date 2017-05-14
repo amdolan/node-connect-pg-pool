@@ -6,19 +6,19 @@ const sinon = require('sinon');
 chai.should();
 
 describe('PGStore', function () {
-  const connectPgSimple = require('../');
+  const connectPgPool = require('../');
 
   let sandbox, PGStore, options;
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
 
-    PGStore = connectPgSimple({
+    PGStore = connectPgPool({
       Store: sandbox.stub()
     });
 
     options = {
-      pg: {},
+      pool: {},
       pruneSessionInterval: false
     };
   });

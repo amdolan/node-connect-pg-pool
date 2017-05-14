@@ -8,11 +8,17 @@ const pg = require('pg');
 const readFile = denodeify(require('fs').readFile);
 
 const tables = ['session'];
-const conString = 'postgres://postgres@localhost/connect_pg_simple_test';
+
+const config = {
+  user: 'postgres',
+  host: 'localhost',
+  port: 5432,
+  database: 'connect_pg_pool_test'
+};
 
 const queryPromise = function (query, params) {
   return new Promise((resolve, reject) => {
-    pg.connect(conString, (err, client, done) => {
+    pg.connect(config, (err, client, done) => {
       if (err) {
         done(client);
         reject(err);
@@ -36,7 +42,7 @@ const initTables = function () {
 };
 
 module.exports = Object.freeze({
-  conString,
+  config,
   queryPromise,
   removeTables,
   initTables

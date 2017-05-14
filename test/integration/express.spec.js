@@ -4,6 +4,7 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 const request = require('supertest-as-promised');
+const pg = require('pg');
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -14,9 +15,9 @@ describe('Express', function () {
   const Cookie = require('cookiejar').Cookie;
   const signature = require('cookie-signature');
 
-  const connectPgSimple = require('../../');
+  const connectPgPool = require('../../');
   const dbUtils = require('../db-utils');
-  const conString = dbUtils.conString;
+  const pool = new pg.Pool(dbUtils.config);
   const queryPromise = dbUtils.queryPromise;
 
   const secret = 'abc123';
@@ -55,7 +56,7 @@ describe('Express', function () {
 
   describe('main', function () {
     it('should generate a token', () => {
-      const store = new (connectPgSimple(session))({ conString });
+      const store = new (connectPgPool(session))({ pool });
       const app = appSetup(store);
 
       return queryPromise('SELECT COUNT(sid) FROM session')
@@ -69,7 +70,7 @@ describe('Express', function () {
     });
 
     it('should return the token it generates', () => {
-      const store = new (connectPgSimple(session))({ conString });
+      const store = new (connectPgPool(session))({ pool });
       const app = appSetup(store);
 
       return request(app)
@@ -87,7 +88,7 @@ describe('Express', function () {
     });
 
     it('should reuse existing session when given a cookie', () => {
-      const store = new (connectPgSimple(session))({ conString });
+      const store = new (connectPgPool(session))({ pool });
       const app = appSetup(store);
       const agent = request.agent(app);
 
@@ -102,7 +103,7 @@ describe('Express', function () {
     });
 
     it('should not reuse existing session when not given a cookie', () => {
-      const store = new (connectPgSimple(session))({ conString });
+      const store = new (connectPgPool(session))({ pool });
       const app = appSetup(store);
 
       return queryPromise('SELECT COUNT(sid) FROM session')
@@ -116,7 +117,7 @@ describe('Express', function () {
     });
 
     it('should invalidate a too old token', () => {
-      const store = new (connectPgSimple(session))({ conString, pruneSessionInterval: false });
+      const store = new (connectPgPool(session))({ pool, pruneSessionInterval: false });
       const app = appSetup(store);
       const agent = request.agent(app);
 

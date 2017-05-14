@@ -1,20 +1,25 @@
 {
-  "name": "connect-pg-simple",
-  "version": "3.1.2",
-  "description": "A simple, minimal PostgreSQL session store for Connect/Express",
-  "url": "http://github.com/voxpelli/node-connect-pg-simple",
+  "name": "connect-pg-pool",
+  "version": "4.0.0",
+  "description": "A simple, minimal PostgreSQL session store for Connect/Express with connection pooling",
+  "url": "https://github.com/nDmitry/node-connect-pg-pool",
   "repository": {
     "type": "git",
-    "url": "git://github.com/voxpelli/node-connect-pg-simple.git"
+    "url": "git://github.com/nDmitry/node-connect-pg-pool.git"
   },
-  "author": {
+  "authors": [{
     "name": "Pelle Wessman",
     "email": "pelle@kodfabrik.se",
     "url": "http://kodfabrik.se/"
   },
+  {
+    "name": "Dmitry Nikitenko",
+    "email": "dima.nikitenko@gmail.com",
+    "url": "https://github.com/nDmitry"
+  }],
   "license": "MIT",
   "dependencies": {
-    "pg": ">=2.7.0-0 <5.0.0-0"
+    "pg": ">=5.2.0-0"
   },
   "engines": {
     "node": ">=4.0.0"
@@ -25,8 +30,7 @@
     "mocha": "NODE_ENV=test istanbul cover _mocha -- -u exports -R spec test/*.spec.js",
     "dependency-check": "JS_FILES=\"*.js test/*.js\" && dependency-check . $JS_FILES && dependency-check . $JS_FILES --unused --no-dev",
     "test-all": "installed-check -e && eslint . && npm run dependency-check && npm run mocha-all",
-    "test": "installed-check -e && eslint . && npm run dependency-check && npm run mocha",
-    "prepush": "npm test"
+    "test": "installed-check -e && eslint . && npm run dependency-check && npm run mocha"
   },
   "devDependencies": {
     "chai": "^3.5.0",
